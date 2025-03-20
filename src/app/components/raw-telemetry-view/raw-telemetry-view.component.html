@@ -1,0 +1,33 @@
+<div class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h3>Сира телеметрія</h3>
+    <p>Кількість записів: {{ rawTelemetryData.length }}</p>
+
+    <table *ngIf="rawTelemetryData.length > 0">
+      <thead>
+        <tr>
+          <th>Широта</th>
+          <th>Довгота</th>
+          <th>Висота</th>
+          <th>Швидкість</th>
+          <th>Точність GPS</th>
+          <th>Час</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let data of rawTelemetryData">
+          <td>{{ data.latitude }}</td>
+          <td>{{ data.longitude }}</td>
+          <td>{{ data.altitude }}</td>
+          <td>{{ data.speed }}</td>
+          <td>{{ data.gpsAccuracy }}</td>
+          <td>{{ data.localDateTime | date: 'medium' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p *ngIf="rawTelemetryData.length === 0">Немає даних для відображення.</p>
+
+    <button class="close-btn" (click)="closeModal()">Закрити</button>
+  </div>
+</div>

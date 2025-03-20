@@ -1,0 +1,14 @@
+<div class="modal">
+  <div class="modal-content">
+    <h2>Показати шлях дрона</h2>
+    <form (ngSubmit)="onSubmit()">
+      <label for="drone-select">Оберіть дрон:</label>
+      <select id="drone-select" [(ngModel)]="selectedDroneName" name="drone" required>
+        <option *ngFor="let drone of drones" [value]="drone.name">{{ drone.name }}</option>
+      </select>
+
+      <button type="submit">Показати шлях</button>
+      <button type="button" (click)="onClose()">Закрити</button>
+    </form>
+  </div>
+</div>

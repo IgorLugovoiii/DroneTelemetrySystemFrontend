@@ -1,0 +1,29 @@
+<div class="modal">
+  <div class="modal-content">
+    <h2>Додати сиру телеметрію</h2>
+    <form (ngSubmit)="onSubmit()">
+      <label for="drone-select">Оберіть дрон:</label>
+      <select id="drone-select" [(ngModel)]="selectedDroneName" name="drone" required>
+        <option *ngFor="let drone of drones" [value]="drone.name">{{ drone.name }}</option>
+      </select>
+
+      <label for="latitude">Широта:</label>
+      <input id="latitude" [(ngModel)]="telemetryDto.latitude" name="latitude" type="number" required />
+
+      <label for="longitude">Довгота:</label>
+      <input id="longitude" [(ngModel)]="telemetryDto.longitude" name="longitude" type="number" required />
+
+      <label for="altitude">Висота:</label>
+      <input id="altitude" [(ngModel)]="telemetryDto.altitude" name="altitude" type="number" required />
+
+      <label for="speed">Швидкість:</label>
+      <input id="speed" [(ngModel)]="telemetryDto.speed" name="speed" type="number" required />
+
+      <label for="gpsAccuracy">Точність GPS:</label>
+      <input id="gpsAccuracy" [(ngModel)]="telemetryDto.gpsAccuracy" name="gpsAccuracy" type="number" required />
+
+      <button type="submit">Зберегти</button>
+      <button type="button" (click)="onClose()">Закрити</button>
+    </form>
+  </div>
+</div>

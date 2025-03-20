@@ -1,0 +1,12 @@
+<div class="modal">
+  <div class="modal-content">
+    <h2>Додати дрон</h2>
+    <form (ngSubmit)="onSubmit()">
+      <label for="name">Назва дрона:</label>
+      <input id="name" [(ngModel)]="drone.name" name="name" required />
+
+      <button type="submit">Зберегти</button>
+      <button type="button" (click)="onClose()">Закрити</button>
+    </form>
+  </div>
+</div>
