@@ -1,1 +1,63 @@
+<div class="top-bar">
+  <div class="action-menu">
+    <button (click)="toggleDropdown('drones')">Дії для дронів</button>
+    <div class="dropdown-content" *ngIf="isDropdownOpen.drones">
+      <a (click)="addDrone()">Додати дрон</a>
+      <a (click)="refreshDrones()">Оновити список дронів</a>
+      <a (click)="showDronePath()">Показати шлях дрона</a>
+    </div>
+  </div>
+
+  <div class="action-menu">
+    <button (click)="toggleDropdown('telemetry')">Дії для телеметрії</button>
+    <div class="dropdown-content" *ngIf="isDropdownOpen.telemetry">
+      <a (click)="addRawTelemetry()">Додати сиру телеметрію</a>
+      <a (click)="showRawTelemetry()">Показати сиру телеметрію</a>
+      <a (click)="showProcessedTelemetry()">Показати оброблену телеметрію</a>
+      <a (click)="showProcessedAndRawPaths()">Показати різницю</a>
+    </div>
+  </div>
+
+  <div class="action-menu">
+    <button (click)="toggleDropdown('filters')">Фільтри</button>
+    <div class="dropdown-content" *ngIf="isDropdownOpen.filters">
+      <a (click)="processWithKalman()">Обробити Kalman</a>
+      <a (click)="processWithHaversine()">Обробити Haversine</a>
+      <a (click)="processWithKalmanAndHaversine()">Обробити Kalman + Haversine</a>
+      <a (click)="clearMapExceptDrones()">Очистити мапу</a>
+    </div>
+  </div>
+</div>
+
 <div id="map"></div>
+
+<!-- Модальне вікно для додавання дрона -->
+<app-add-drone-modal
+  *ngIf="isModalOpen"
+  (save)="onDroneSaved($event)"
+  (close)="closeModal()"
+></app-add-drone-modal>
+
+<!-- Модальне вікно для додавання сирої телеметрії -->
+<app-add-raw-telemetry-modal
+  *ngIf="isRawTelemetryModalOpen"
+  (close)="closeRawTelemetryModal()"
+></app-add-raw-telemetry-modal>
+
+<!-- Модальне вікно для показу шляху дрона -->
+<app-show-drone-path-modal
+  *ngIf="isDronePathModalOpen"
+  (close)="onDronePathSelected($event)"
+></app-show-drone-path-modal>
+
+<app-raw-telemetry-view 
+  *ngIf="isRawTelemetryModalVisible" 
+  [rawTelemetryData]="rawTelemetryData"
+  (close)="closeRawTelemetryModal()">
+</app-raw-telemetry-view>
+
+<app-processed-telemetry-view 
+  *ngIf="isProcessedTelemetryModalVisible" 
+  [processedTelemetryData]="processedTelemetryData"
+  (close)="closeProcessedTelemetryModal()">
+</app-processed-telemetry-view>

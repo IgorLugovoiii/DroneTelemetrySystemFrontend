@@ -21,6 +21,7 @@
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
+              "src", 
               {
                 "glob": "**/*",
                 "input": "public"
@@ -29,12 +30,7 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": [],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
-            "ssr": {
-              "entry": "src/server.ts"
-            }
+            "scripts": []
           },
           "configurations": {
             "production": {
@@ -58,7 +54,7 @@
               "sourceMap": true
             }
           },
-          "defaultConfiguration": "production"
+          "defaultConfiguration": "development"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
@@ -84,6 +80,7 @@
             ],
             "tsConfig": "tsconfig.spec.json",
             "assets": [
+              "src",
               {
                 "glob": "**/*",
                 "input": "public"
@@ -99,6 +96,6 @@
     }
   },
   "cli": {
-    "analytics": "545d0896-56e1-44cd-845c-cc11e94fb16c"
+    "analytics": false
   }
 }
