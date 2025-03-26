@@ -3,28 +3,38 @@
     <h3>Оброблена телеметрія</h3>
     <p>Кількість записів: {{ processedTelemetryData.length }}</p>
 
-    <table *ngIf="processedTelemetryData.length > 0">
-      <thead>
-        <tr>
-          <th>Широта</th>
-          <th>Довгота</th>
-          <th>Висота</th>
-          <th>Швидкість</th>
-          <th>Точність GPS</th>
-          <th>Час</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let data of processedTelemetryData">
-          <td>{{ data.latitude }}</td>
-          <td>{{ data.longitude }}</td>
-          <td>{{ data.altitude }}</td>
-          <td>{{ data.speed }}</td>
-          <td>{{ data.gpsAccuracy }}</td>
-          <td>{{ data.localDateTime | date: 'medium' }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-container" *ngIf="processedTelemetryData.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Дрон</th>
+            <th>Широта</th>
+            <th>Довгота</th>
+            <th>Висота</th>
+            <th>Зміна висоти</th>
+            <th>Швидкість</th>
+            <th>Пройдена відстань</th>
+            <th>Відстань (Haversine)</th>
+            <th>Фільтр</th>
+            <th>Час</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let data of processedTelemetryData">
+            <td>{{ getDroneName(data.drone) }}</td>
+            <td>{{ data.latitude | number:'1.6-6' }}</td>
+            <td>{{ data.longitude | number:'1.6-6' }}</td>
+            <td>{{ data.altitude | number:'1.2-2' }} м</td>
+            <td>{{ data.altitudeChange | number:'1.2-2' }} м</td>
+            <td>{{ data.speed | number:'1.2-2' }} м/с</td>
+            <td>{{ data.totalDistance | number:'1.2-2' }} км</td>
+            <td>{{ data.totalDistanceHaversine | number:'1.2-2' }} км</td>
+            <td>{{ getProcessingTypeName(data.processingType) }}</td>
+            <td>{{ data.localDateTime | date:'mediumTime' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <p *ngIf="processedTelemetryData.length === 0">Немає даних для відображення.</p>
 

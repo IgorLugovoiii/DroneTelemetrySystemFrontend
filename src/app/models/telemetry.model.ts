@@ -1,5 +1,3 @@
-import { Drone } from './drone.model';
-
 export interface Telemetry {
     id: number;
     latitude: number;
@@ -11,6 +9,9 @@ export interface Telemetry {
     totalDistance: number;
     totalDistanceHaversine: number;
     processingType: string;
-    drone: Drone;
-    gpsAccuracy: number;
+    drone: {
+        id?: number;
+        name: string;
+    };
+    gpsAccuracy?: number;
 }

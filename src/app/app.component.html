@@ -12,21 +12,15 @@
     <button (click)="toggleDropdown('telemetry')">Дії для телеметрії</button>
     <div class="dropdown-content" *ngIf="isDropdownOpen.telemetry">
       <a (click)="addRawTelemetry()">Додати сиру телеметрію</a>
-      <a (click)="showRawTelemetry()">Показати сиру телеметрію</a>
-      <a (click)="showProcessedTelemetry()">Показати оброблену телеметрію</a>
+      <a (click)="showRawTelemetryModal()">Показати сиру телеметрію</a>
+      <a (click)="showProcessedTelemetryModal()">Показати оброблену телеметрію</a>
       <a (click)="showProcessedAndRawPaths()">Показати різницю</a>
     </div>
   </div>
 
-  <div class="action-menu">
-    <button (click)="toggleDropdown('filters')">Фільтри</button>
-    <div class="dropdown-content" *ngIf="isDropdownOpen.filters">
-      <a (click)="processWithKalman()">Обробити Kalman</a>
-      <a (click)="processWithHaversine()">Обробити Haversine</a>
-      <a (click)="processWithKalmanAndHaversine()">Обробити Kalman + Haversine</a>
-      <a (click)="clearMapExceptDrones()">Очистити мапу</a>
-    </div>
-  </div>
+  <button class="process-btn" (click)="openProcessModal('KALMAN')">Обробити телеметрію</button>
+  
+  <button class="clear-btn" (click)="clearMapExceptDrones()">Очистити мапу</button>
 </div>
 
 <div id="map"></div>
@@ -61,3 +55,15 @@
   [processedTelemetryData]="processedTelemetryData"
   (close)="closeProcessedTelemetryModal()">
 </app-processed-telemetry-view>
+
+<app-process-telemetry-modal
+  *ngIf="isProcessModalOpen"
+  (process)="onProcessTelemetry($event)"
+  (close)="closeProcessModal()"
+></app-process-telemetry-modal>
+
+<app-telemetry-selector-modal
+  *ngIf="isTelemetrySelectorModalOpen"
+  (selected)="onDroneSelected($event)"
+  (close)="closeTelemetrySelectorModal()"
+></app-telemetry-selector-modal>
