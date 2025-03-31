@@ -2,7 +2,7 @@ import { Component, AfterViewInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { DroneService } from './services/drone.service';
 import { TelemetryService } from './services/telemetry.service';
-import { TelemetryDto } from './models/telemetry-dto.model';
+
 import { Drone, RawTelemetry, Telemetry } from './models';
 import L from 'leaflet';
 import { AddDroneModalComponent } from './components/add-drone-modal/add-drone-modal.component';
@@ -12,6 +12,9 @@ import { RawTelemetryViewComponent } from './components/raw-telemetry-view/raw-t
 import { ProcessedTelemetryViewComponent } from './components/processed-telemetry-view/processed-telemetry-view.component';
 import { ProcessTelemetryModalComponent } from './components/process-telemetry-modal/process-telemetry-modal.component';
 import { TelemetrySelectorModalComponent } from './components/telemetry-selector-modal/telemetry-selector-modal.component';
+import { CompareTelemetryModalComponent } from './components/compare-telemetry-modal/compare-telemetry-modal.component';
+import { Observable } from 'rxjs/internal/Observable';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -24,7 +27,8 @@ import { TelemetrySelectorModalComponent } from './components/telemetry-selector
     RawTelemetryViewComponent,
     ProcessedTelemetryViewComponent,
     ProcessTelemetryModalComponent,
-    TelemetrySelectorModalComponent  
+    TelemetrySelectorModalComponent,
+    CompareTelemetryModalComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -37,16 +41,16 @@ export class AppComponent implements AfterViewInit {
   processedTelemetryData: Telemetry[] = [];
   isRawTelemetryDataVisible = false;
   isProcessedTelemetryDataVisible = false;
-  isComparisonVisible = false;
   isRawTelemetryModalVisible = false;
   isProcessedTelemetryModalVisible = false;
   isProcessModalOpen = false;
   processingType: string = '';
   isTelemetrySelectorModalOpen = false;
   telemetryViewType: 'raw' | 'processed' | null = null;
+  isCompareModalOpen = false;
 
   private legend: L.Control | null = null;
-  selectedDroneName: string | null = null;
+
 
   private map: any;
   drones: Drone[] = [];
@@ -98,7 +102,6 @@ export class AppComponent implements AfterViewInit {
           fillOpacity: 0.5 // Прозорість
         }).addTo(this.map);
 
-        // Додаємо popup з інформацією про дрон
         circle.bindPopup(`<b>${drone.name}</b><br>ID: ${drone.id}`).openPopup();
       }
     });
@@ -144,7 +147,7 @@ export class AppComponent implements AfterViewInit {
     }
     this.closeDronePathModal();
   }
-  
+
 
   showDronePathOnMap(path: { latitude: number; longitude: number }[]): void {
     this.clearMapExceptDrones();
@@ -242,126 +245,154 @@ export class AppComponent implements AfterViewInit {
     this.telemetryViewType = null;
   }
 
-  
+
   closeProcessedTelemetryModal(): void {
     this.isProcessedTelemetryModalVisible = false;
   }
+
   showProcessedAndRawPaths(): void {
     this.isDropdownOpen.telemetry = false;
-    this.isDronePathModalOpen = true;
+    this.isCompareModalOpen = true;
   }
-  
+
+  onCompareSelected(droneId: number): void {
+    this.showProcessedAndRawPathsOnMap(droneId);
+    this.closeCompareModal();
+  }
+
+  closeCompareModal(): void {
+    this.isCompareModalOpen = false;
+  }
+
   showProcessedAndRawPathsOnMap(droneId: number): void {
     this.clearMapExceptDrones();
-  
-    this.telemetryService.getRawTelemetry(droneId).subscribe({
-      next: (rawTelemetry) => {
-        this.telemetryService.getProcessedTelemetry(droneId).subscribe({
-          next: (processedTelemetry) => {
-            let rawPolyline: L.Polyline | null = null;
-            let processedPolyline: L.Polyline | null = null;
-  
-            // Відображення сирої телеметрії (червоний шлях)
-            if (rawTelemetry.length > 0) {
-              const rawLatLngs: L.LatLngTuple[] = rawTelemetry.map(
-                (point) => [point.latitude, point.longitude] as L.LatLngTuple
-              );
-              rawPolyline = L.polyline(rawLatLngs, {
-                color: 'red',
-                weight: 5,
-                opacity: 0.7
-              }).addTo(this.map);
+
+    forkJoin([
+      this.telemetryService.getRawTelemetry(droneId),
+      this.telemetryService.getProcessedTelemetry(droneId)
+    ]).subscribe({
+      next: ([rawTelemetry, processedTelemetry]) => {
+        const sortedRaw = [...rawTelemetry].sort((a, b) =>
+          new Date(a.localDateTime).getTime() - new Date(b.localDateTime).getTime());
+        const sortedProcessed = [...processedTelemetry].sort((a, b) =>
+          new Date(a.localDateTime).getTime() - new Date(b.localDateTime).getTime());
+
+        console.log("Raw Telemetry (sorted):", sortedRaw);
+        console.log("Processed Telemetry (sorted):", sortedProcessed);
+
+        if (sortedRaw.length > 0) {
+          const rawLatLngs = sortedRaw.map(point => {
+            if (point.latitude < -90 || point.latitude > 90 || point.longitude < -180 || point.longitude > 180) {
+              console.error("Invalid raw coordinates:", point);
+              return null;
             }
-  
-            // Відображення обробленої телеметрії (синій шлях)
-            if (processedTelemetry.length > 0) {
-              const processedLatLngs: L.LatLngTuple[] = processedTelemetry.map(
-                (point) => [point.latitude, point.longitude] as L.LatLngTuple
-              );
-              processedPolyline = L.polyline(processedLatLngs, {
-                color: 'blue',
-                weight: 3,
-                opacity: 0.7
-              }).addTo(this.map);
-            }
-  
-            this.legend = new L.Control({ position: 'bottomright' });
-            this.legend.onAdd = () => {
-              const div = L.DomUtil.create('div', 'info legend');
-              div.innerHTML += `
-                <h4>Легенда</h4>
-                <p style="color: red;">Сира телеметрія</p>
-                <p style="color: blue;">Оброблена телеметрія</p>
-              `;
-              return div;
-            };
-            this.legend.addTo(this.map);
-  
-            if (rawPolyline || processedPolyline) {
-              this.map.fitBounds(rawPolyline?.getBounds() || processedPolyline?.getBounds());
-            }
-          },
-          error: (err) => {
-            console.error('Помилка при отриманні обробленої телеметрії:', err);
-            alert('Не вдалося отримати оброблену телеметрію.');
+            return [point.latitude, point.longitude] as L.LatLngTuple;
+          }).filter(point => point !== null);
+
+          if (rawLatLngs.length > 0) {
+            L.polyline(rawLatLngs as L.LatLngTuple[], { color: 'red', weight: 5 }).addTo(this.map);
           }
-        });
+        }
+
+        if (sortedProcessed.length > 0) {
+          const processedLatLngs = sortedProcessed.map(point => {
+            if (point.latitude < -90 || point.latitude > 90 || point.longitude < -180 || point.longitude > 180) {
+              console.error("Invalid processed coordinates:", point);
+              return null;
+            }
+            return [point.latitude, point.longitude] as L.LatLngTuple;
+          }).filter(point => point !== null);
+
+          if (processedLatLngs.length > 0) {
+            L.polyline(processedLatLngs as L.LatLngTuple[], { color: 'blue', weight: 3 }).addTo(this.map);
+          }
+        }
+
+        this.addLegend();
+        this.fitMapToPaths(sortedRaw, sortedProcessed);
       },
-      error: (err) => {
-        console.error('Помилка при отриманні сирої телеметрії:', err);
-        alert('Не вдалося отримати сиру телеметрію.');
-      }
+      error: (err) => console.error('Помилка при отриманні телеметрії:', err)
     });
   }
+
+  private addLegend(): void {
+    if (this.legend) {
+      this.legend.remove();
+    }
+
+    this.legend = new L.Control({ position: 'bottomright' });
+    this.legend.onAdd = () => {
+      const div = L.DomUtil.create('div', 'info legend');
+      div.innerHTML = `
+            <h4>Легенда</h4>
+            <p style="color: red;">Сира телеметрія</p>
+            <p style="color: blue;">Оброблена телеметрія</p>
+        `;
+      return div;
+    };
+    this.legend.addTo(this.map);
+  }
+
+  private fitMapToPaths(rawData: RawTelemetry[], processedData: Telemetry[]): void {
+    const bounds = new L.LatLngBounds([]);
+
+    rawData.forEach(point => {
+      bounds.extend([point.latitude, point.longitude]);
+    });
+
+    processedData.forEach(point => {
+      bounds.extend([point.latitude, point.longitude]);
+    });
+
+    if (!bounds.isValid()) {
+      bounds.extend([50, 30]);
+    }
+
+    this.map.fitBounds(bounds);
+  }
+
   openProcessModal(type: string): void {
     this.isProcessModalOpen = true;
     this.processingType = type;
   }
-  
-  onProcessTelemetry(event: {droneId: number, processingType: string}): void {
+
+  onProcessTelemetry(event: { droneId: number, processingType: string }): void {
     const { droneId, processingType } = event;
-    
+
     if (this.legend) {
       this.legend.remove();
       this.legend = null;
     }
-  
-    this.telemetryService.getRawTelemetry(droneId).subscribe({
-      next: (rawTelemetryList) => {
-        if (rawTelemetryList.length === 0) {
-          alert('Немає сирої телеметрії для обробки');
-          return;
-        }
-  
-        const lastRawTelemetry = rawTelemetryList[rawTelemetryList.length - 1];
-        const telemetryDto: TelemetryDto = {
-          droneId: droneId,
-          latitude: lastRawTelemetry.latitude,
-          longitude: lastRawTelemetry.longitude,
-          altitude: lastRawTelemetry.altitude,
-          speed: lastRawTelemetry.speed,
-          gpsAccuracy: lastRawTelemetry.gpsAccuracy
-        };
-  
-        let processObservable;
+
+    this.telemetryService.clearProcessedTelemetry(droneId).subscribe({
+      next: () => {
+        let processObservable: Observable<any>;
         switch (processingType) {
           case 'KALMAN':
-            processObservable = this.telemetryService.processWithKalman(telemetryDto);
+            processObservable = this.telemetryService.processAllWithKalman(droneId);
             break;
           case 'HAVERSINE':
-            processObservable = this.telemetryService.processWithHaversine(telemetryDto);
+            processObservable = this.telemetryService.processAllWithHaversine(droneId);
             break;
           case 'KALMAN_AND_HAVERSINE':
-            processObservable = this.telemetryService.processWithKalmanAndHaversine(telemetryDto);
+            processObservable = this.telemetryService.processAllWithKalmanAndHaversine(droneId);
             break;
           default:
             return;
         }
-  
+
         processObservable.subscribe({
-          next: () => {
+          next: (processedData) => {
             alert(`Телеметрія оброблена за допомогою ${processingType}`);
             this.loadDrones();
+
+            this.telemetryService.getRawTelemetry(droneId).subscribe(rawData => {
+              this.rawTelemetryData = rawData;
+              this.processedTelemetryData = processedData;
+              this.isRawTelemetryDataVisible = true;
+              this.isProcessedTelemetryDataVisible = true;
+            });
+
             this.closeProcessModal();
           },
           error: (err) => {
@@ -371,17 +402,21 @@ export class AppComponent implements AfterViewInit {
         });
       },
       error: (err) => {
-        console.error('Помилка при отриманні сирої телеметрії:', err);
-        alert('Не вдалося отримати сиру телеметрію для обробки');
+        console.error('Помилка при очищенні обробленої телеметрії:', err);
+        alert('Не вдалося очистити оброблену телеметрію');
       }
     });
   }
-  
+
   closeProcessModal(): void {
     this.isProcessModalOpen = false;
     this.processingType = '';
   }
 
+  showCompareModal(): void {
+    this.isDropdownOpen.drones = false;
+    this.isCompareModalOpen = true;
+  }
   clearMapExceptDrones(): void {
     this.map.eachLayer((layer: L.Layer) => {
       if (layer instanceof L.Polyline) {

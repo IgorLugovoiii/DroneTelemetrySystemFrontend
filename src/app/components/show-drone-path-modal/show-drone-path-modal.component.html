@@ -7,13 +7,10 @@
         <option *ngFor="let drone of drones" [value]="drone.name">{{ drone.name }}</option>
       </select>
 
-      <label>
-        <input type="checkbox" [(ngModel)]="showComparison" name="showComparison" />
-        Показати порівняння сирої та обробленої телеметрії
-      </label>
-
-      <button type="submit">Показати</button>
-      <button type="button" (click)="onClose()">Закрити</button>
+      <div class="modal-buttons">
+        <button type="submit">Показати</button>
+        <button type="button" (click)="onClose()">Закрити</button>
+      </div>
     </form>
   </div>
 </div>

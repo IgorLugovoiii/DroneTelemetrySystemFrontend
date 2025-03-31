@@ -15,20 +15,8 @@ export class DroneService {
     return this.http.get<Drone[]>(`${this.apiUrl}/all`);
   }
 
-  getDroneById(id: number): Observable<Drone> {
-    return this.http.get<Drone>(`${this.apiUrl}/${id}`);
-  }
-
   createDrone(drone: Drone): Observable<Drone> {
     return this.http.post<Drone>(`${this.apiUrl}`, drone);
-  }
-
-  updateDrone(id: number, drone: Drone): Observable<Drone> {
-    return this.http.put<Drone>(`${this.apiUrl}/${id}`, drone);
-  }
-
-  deleteDrone(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
   
   getDroneByName(name: string): Observable<Drone> {

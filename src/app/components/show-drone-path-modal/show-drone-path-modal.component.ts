@@ -13,11 +13,9 @@ import { Drone } from '../../models/drone.model';
 })
 export class ShowDronePathModalComponent {
   @Output() close = new EventEmitter<{ latitude: number; longitude: number }[]>();
-  @Output() showPaths = new EventEmitter<number>();
-
+  
   selectedDroneName: string | null = null;
   drones: Drone[] = [];
-  showComparison = false;
 
   constructor(private droneService: DroneService) {}
 
@@ -39,18 +37,13 @@ export class ShowDronePathModalComponent {
           return;
         }
 
-        if (this.showComparison) {
-          this.showPaths.emit(drone.id);
-          this.onClose();
-        } else {
-          this.droneService.getDronePath(drone.id).subscribe((path) => {
-            if (!path || path.length < 2) {
-              alert("Не вдалося побудувати маршрут: потрібно як мінімум 2 точки.");
-              return;
-            }
-            this.close.emit(path);
-          });
-        }
+        this.droneService.getDronePath(drone.id).subscribe((path) => {
+          if (!path || path.length < 2) {
+            alert("Не вдалося побудувати маршрут: потрібно як мінімум 2 точки.");
+            return;
+          }
+          this.close.emit(path);
+        });
       });
     } else {
       alert('Будь ласка, оберіть дрон зі списку.');

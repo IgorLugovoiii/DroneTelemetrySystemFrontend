@@ -9,22 +9,10 @@ import { TelemetryDto, Telemetry, RawTelemetry } from '../models';
 export class TelemetryService {
   private apiUrl = 'http://localhost:8080/api/telemetry';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   saveRawTelemetry(telemetryDto: TelemetryDto): Observable<RawTelemetry> {
     return this.http.post<RawTelemetry>(`${this.apiUrl}/saveRawTelemetry`, telemetryDto);
-  }
-
-  processWithKalman(telemetryDto: TelemetryDto): Observable<Telemetry> {
-    return this.http.post<Telemetry>(`${this.apiUrl}/kalman`, telemetryDto);
-  }
-
-  processWithHaversine(telemetryDto: TelemetryDto): Observable<Telemetry> {
-    return this.http.post<Telemetry>(`${this.apiUrl}/haversine`, telemetryDto);
-  }
-
-  processWithKalmanAndHaversine(telemetryDto: TelemetryDto): Observable<Telemetry> {
-    return this.http.post<Telemetry>(`${this.apiUrl}/haversine-kalman`, telemetryDto);
   }
 
   getProcessedTelemetry(droneId: number): Observable<Telemetry[]> {
@@ -33,5 +21,20 @@ export class TelemetryService {
 
   getRawTelemetry(droneId: number): Observable<RawTelemetry[]> {
     return this.http.get<RawTelemetry[]>(`${this.apiUrl}/raw/${droneId}`);
+  }
+  clearProcessedTelemetry(droneId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/clear/${droneId}`);
+  }
+
+  processAllWithKalman(droneId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/processAll/kalman/${droneId}`, {});
+  }
+
+  processAllWithHaversine(droneId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/processAll/haversine/${droneId}`, {});
+  }
+
+  processAllWithKalmanAndHaversine(droneId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/processAll/kalman-haversine/${droneId}`, {});
   }
 }
