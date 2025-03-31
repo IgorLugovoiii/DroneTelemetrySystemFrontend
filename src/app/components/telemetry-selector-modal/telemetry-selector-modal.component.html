@@ -1,0 +1,14 @@
+<div class="modal-overlay" (click)="onClose()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3>Виберіть дрон</h3>
+      
+      <select [(ngModel)]="selectedDroneName" class="drone-select">
+        <option *ngFor="let drone of drones" [value]="drone.name">{{ drone.name }}</option>
+      </select>
+  
+      <div class="modal-buttons">
+        <button (click)="onSubmit()" class="submit-btn">Підтвердити</button>
+        <button (click)="onClose()" class="cancel-btn">Скасувати</button>
+      </div>
+    </div>
+  </div>

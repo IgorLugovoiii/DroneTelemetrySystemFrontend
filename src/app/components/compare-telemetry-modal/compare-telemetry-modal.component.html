@@ -1,0 +1,16 @@
+<div class="modal">
+    <div class="modal-content">
+      <h2>Порівняти сиру та оброблену телеметрію</h2>
+      <form (ngSubmit)="onSubmit()">
+        <label for="drone-select">Оберіть дрон:</label>
+        <select id="drone-select" [(ngModel)]="selectedDroneName" name="drone" required>
+          <option *ngFor="let drone of drones" [value]="drone.name">{{ drone.name }}</option>
+        </select>
+  
+        <div class="modal-buttons">
+          <button type="submit">Порівняти</button>
+          <button type="button" (click)="onClose()">Закрити</button>
+        </div>
+      </form>
+    </div>
+  </div>
